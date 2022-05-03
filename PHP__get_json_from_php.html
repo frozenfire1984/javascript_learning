@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<div class="data"></div>
+<button class="btn">get data</button>
+
+
+<script>
+  const btn = document.querySelector(".btn")
+  const result = document.querySelector(".data")
+
+  const getData = () => {
+    btn.disabled = true
+    result.innerHTML = "...loading..."
+    fetch("http://localhost/crud/")
+    .then((res) => {
+      return res.json()
+    })
+    .then((data) => {
+      btn.disabled = false
+      let ul = document.createElement("ul")
+      data.forEach((item) => {
+        let li = document.createElement("li")
+        let ul_child = document.createElement("ul")
+
+        for (const [key, value] of Object.entries(item)) {
+          let li_child = document.createElement("li")
+          li_child.innerHTML = `<b>${key}:</b> ${value}`
+          ul_child.appendChild(li_child)
+        }
+        li.appendChild(ul_child)
+        ul.appendChild(li)
+
+      })
+      result.innerHTML = ""
+      result.appendChild(ul)
+      //console.log(data)
+    })
+    .catch((err) => {
+      btn.disabled = false
+      result.innerHTML = `error: ${err}`
+      console.log(err)
+    })
+  }
+
+
+  btn.addEventListener("click", getData)
+
+</script>
+</body>
+</html>

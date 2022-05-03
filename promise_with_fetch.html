@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    .outputs_wrapper > div {
+      padding: 10px;
+    }
+
+    .outputs_wrapper > div:empty {
+      display: none;
+    }
+
+    .outputs_wrapper > div + div {
+      border-top: 1px dotted hsla(0, 0%, 0%, .1);
+    }
+  </style>
+</head>
+<body>
+<button id="btn">Get</button>
+<hr />
+<div class="outputs_wrapper">
+  <div class="num_output"></div>
+  <div class="list_output"></div>
+  <div class="img_output"></div>
+  <div class="finally_output"></div>
+</div>
+
+<script>
+  let btn_tag = document.getElementById("btn")
+  let num_output_tag = document.querySelector(".num_output")
+  let post_output_tag = document.querySelector(".list_output")
+  let img_output_tag = document.querySelector(".img_output")
+  let finally_output_tag = document.querySelector(".finally_output")
+  
+  
+  const tags = document.querySelectorAll(".outputs_wrapper > div")
+
+
+
+  let loading_text = "...loading..."
+  let error_tag = document.createElement("div")
+  error_tag.classList.add("error")
+  error_tag.style.color = "#f00"
+  error_tag.style.fontStyle = "italic"
+
+  let clear_all_tags = () => {
+    tags.forEach((tag) => {
+      tag.innerHTML = ""
+      tag.style.removeProperty("color")
+    })
+    //num_output_tag.innerHTML = ""
+    //post_output_tag.innerHTML = ""
+    //img_output_tag.innerHTML = ""
+    //finally_output_tag.innerHTML = ""
+    //finally_output_tag.style.removeProperty("color")
+  }
+
+  let retry_btn = () => {
+    btn_tag.disabled = false
+    btn_tag.innerHTML = "Try get again"
+  }
+
+
+
+  btn_tag.addEventListener("click", () => {
+    btn_tag.disabled = true
+    clear_all_tags()
+    num_output_tag.innerHTML = loading_text
+    fetch("http://www.randomnumberapi.com/api/v1.0/random")
+    .then((res) => {
+      //console.log(res)
+      if (res.ok) {
+        return res.json()
+      } else {
+        num_output_tag.style.color = "#f00"
+        num_output_tag.innerHTML = "Error!"
+        retry_btn()
+        throw new Error(res.statusText)
+      }
+    })
+    .then((data) => {
+      num_output_tag.innerHTML = data[0]
+      post_output_tag.innerHTML = loading_text
+      return fetch(`https://jsonplaceholder.typicode.com/posts/${data[0]}`)
+    })
+    .then((res) => {
+      console.log(res)
+      if (res.ok) {
+        return res.json()
+      } else {
+        post_output_tag.style.color = "#f00"
+        post_output_tag.innerHTML = "Error!"
+      }
+    })
+    .then((data) => {
+      let ul = document.createElement("ul")
+      for (const [key, value] of Object.entries(data)) {
+        let li = document.createElement("li")
+        li.innerHTML = `<b>${key}:</b> ${value}`
+        ul.appendChild(li)
+      }
+      post_output_tag.innerHTML = ""
+      post_output_tag.appendChild(ul)
+      img_output_tag.innerHTML = loading_text
+      let url = new URL("https://dummyimage.com/500x500/000/fff/")
+      url.searchParams.append("text", data.title.toString())
+      return fetch(url)
+    })
+    .then((res) => {
+      if (res.ok) {
+        return res.blob()
+      } else {
+        console.log("!!!!!!")
+        img_output_tag.style.color = "#f00"
+        img_output_tag.innerHTML = "Error!"
+      }
+    })
+    .then((data) => {
+      let img_tag = document.createElement("img")
+      let urlCreator = window.URL || window.webkitURL;
+      img_tag.src = urlCreator.createObjectURL(data);
+      img_output_tag.innerHTML = ""
+      img_output_tag.appendChild(img_tag)
+      finally_output_tag.innerHTML = loading_text
+      return fetch(`http://worldtimeapi.org/api/timezone/${Intl.DateTimeFormat().resolvedOptions().timeZone}`)
+    })
+    .then((res) => {
+      if (res.ok) {
+        return res.json()
+      } else {
+        console.log("!!!!!!")
+        finally_output_tag.style.color = "#f00"
+        finally_output_tag.innerHTML = "Error!"
+      }
+    })
+    .then((data) => {
+      //console.log(data)
+      let datetime = new Date(data.datetime)
+      finally_output_tag.style.color = "green"
+      finally_output_tag.innerHTML = `All Successfully! ${datetime.toLocaleTimeString()}`
+
+      let smile_tag = document.createElement("span")
+      smile_tag.style.display = "inline-block"
+      smile_tag.style.fontSize = "12px"
+      smile_tag.style.marginLeft = "5px"
+      smile_tag.innerHTML = "😀"
+
+      setTimeout(() => {
+        finally_output_tag.appendChild(smile_tag)
+        retry_btn()
+      }, 1000)
+    })
+
+    .catch((err) => {
+      console.log(err)
+      error_tag.innerHTML = "Finally Error!"
+      finally_output_tag.appendChild(error_tag)
+
+    })
+
+  })
+
+
+
+</script>
+</body>
+</html>

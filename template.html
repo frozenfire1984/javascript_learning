@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<ul class="list" id="list">
+</ul>
+<template id="temp">
+  <li>
+    <div>
+      <strong>ID:</strong>
+      <span class="value_id"></span>  
+    </div>
+    <div>
+      <strong>Name:</strong>
+      <span class="value_name"></span>
+    </div>
+    <div>
+      <strong>Position:</strong>
+      <em class="value_position"></em>
+    </div>
+    <details>
+      <summary>More:</summary>
+      <div class="value_desc"></div>
+    </details>
+    <hr/>
+  </li>
+</template>
+
+<script>
+  const persons = [
+    {
+      id: 10,
+      name: "John",
+      last_name: "Johns",
+      position: "Fighter",
+      description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A, ab, asperiores assumenda commodi doloremque ducimus eius error, et impedit in itaque iure molestiae officiis possimus provident quae repellendus ut voluptatibus."
+    },
+    {
+      id: 20,
+      name: "Joe",
+      last_name: "Rogan",
+      position: "Commentator",
+      description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A, ab, asperiores assumenda commodi doloremque ducimus eius error, et impedit in itaque iure molestiae officiis possimus provident quae repellendus ut voluptatibus."
+    },
+    {
+      id: 80,
+      name: "Dana",
+      last_name: "White",
+      position: "Director",
+      //description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A, ab, asperiores assumenda commodi doloremque ducimus eius error, et impedit in itaque iure molestiae officiis possimus provident quae repellendus ut voluptatibus."
+    },
+    {
+      id: 90,
+      name: "Lorenzo",
+      last_name: "Ferrita",
+      position: "Owner",
+      description: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A, ab, asperiores assumenda commodi doloremque ducimus eius error, et impedit in itaque iure molestiae officiis possimus provident quae repellendus ut voluptatibus."
+    }
+  ]
+
+  const list_tag = document.querySelector("#list")
+  const template_content = document.querySelector("#temp").content.cloneNode(true)
+  const template_id = template_content.querySelector(".value_id")
+        template_name = template_content.querySelector(".value_name")
+        template_position = template_content.querySelector(".value_position")
+        template_desc = template_content.querySelector(".value_desc")
+  
+  persons.forEach((item, index) => {
+    template_id.textContent = item.id
+    template_name.textContent = `${item.name}, ${item.last_name}`
+    template_position.textContent = item.position
+    template_desc.parentNode.hidden = !item.description;
+    template_desc.textContent = item.description
+    list_tag.appendChild(template_content.cloneNode(true))
+  })
+</script>
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<script>
+  const car = {
+    _id: 1234,
+    _uid: 12345345345,
+    name: "car",
+    area: "ground",
+    material: "metal",
+    fuel: "petrol",
+    engine: 'internal combustion',
+    _nochanable: ["name", "area"],
+    test: () => {
+      console.log("!!!!")
+    }
+  }
+
+  const cp = new Proxy(car, {
+    get(target, prop) {
+      if (prop in target) {
+        if (prop.charAt(0) === "_") {
+          console.warn(`prop {${prop}} is hidden!`)
+          return false
+        } else {
+          console.log(`get field {${prop}} from object`, target)
+          return target[prop]
+        }
+      } else {
+        console.warn(`prop {${prop}} don't exist!`)
+        return false
+      }
+    },
+    set(target, prop, value) {
+      if (prop in target) {
+        console.log(`set field {${prop}} from object`, target)
+        if ((target["_nochanable"].includes(prop)) || (prop.charAt(0) === "_")) {
+          console.warn(`this prop {${prop}} is protect or hidden!`)
+          return false
+        } else if (typeof value === "string") {
+          target[prop] = value
+          console.log(`new value is ${value}`)
+          return true
+        } else {
+          console.log(`${value} is no string!`)
+          return false
+        }
+      } else {
+        console.warn(`prop {${prop}} don't exist!`)
+        return false
+      }
+    },
+    has(target, prop) {
+      console.log(Object.keys(target))
+      return Object.keys(target).filter(e => e.charAt(0) !== '_').includes(prop)
+    },
+    deleteProperty(target, prop) {
+      if (prop in target) {
+        console.log(`try deleting {${prop}} from object`, target)
+        if ((target["_nochanable"].includes(prop)) || (prop.charAt(0) === "_")) {
+          console.warn(`this prop {${prop}} is don't may deleting!`)
+          return false
+        } else {
+          delete target[prop]
+          console.log(`delete ${prop}`)
+          return true
+        }
+      } else {
+        console.warn(`prop {${prop}} don't exist!`)
+      }
+    },
+    ownKeys(target) {
+      return Object.keys(target).filter(k => k.charAt(0) !== '_')
+    },
+    apply(target, thisArg, argArray) {
+      console.log("dfgdfg")
+    }
+
+  })
+
+  //console.log(cp._id)
+
+  String.prototype.inverse = function (){
+    return this.split('').reduce((summ, curent) => {
+      if (curent === curent.toUpperCase()) {
+        return summ + curent.toLowerCase()
+      } else if (curent === curent.toLowerCase()) {
+        return summ + curent.toUpperCase()
+      } else {
+        return summ + curent
+      }
+    },'')
+  }
+
+  const log = (...args) => {
+    return `Log: ${args}`
+  }
+
+  const test = {
+    foo: "lorem",
+    bar: "upsum"
+  }
+
+  const lp = new Proxy(log, {
+    apply(target, thisArg, argArray) {
+      console.log("Calling...")
+      return target.apply(thisArg, argArray).inverse()
+    }
+  })
+
+  const res = lp("lorem")
+  console.log(res)
+
+
+
+
+
+</script>
+</body>
+</html>

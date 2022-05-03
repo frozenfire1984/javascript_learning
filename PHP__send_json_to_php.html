@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<div class="output"></div>
+<button type="submit" class="btn_send">send data</button>
+<script>
+
+  async function send() {
+    const output_tag = document.querySelector(".output")
+    output_tag.innerHTML = "...loading..."
+
+    try {
+      const payload = { username: 'john', title: "foo" }
+      let url = new URL("http://localhost/crud/insert.php")
+      url.searchParams.append("test", "foo bar")
+
+      let headers = new Headers({
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      })
+
+      let response = await fetch("http://localhost/crud/insert.php", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        body: JSON.stringify(payload),
+      })
+      console.log(response)
+
+      let data = await response.json()
+      output_tag.innerHTML = "success!"
+      console.log(data)
+    } catch (err) {
+      console.log("start error")
+      console.log(err)
+      console.log("end error")
+      output_tag.innerHTML = "error!"
+    }
+  }
+  document.querySelector('button').addEventListener('click', send);
+</script>
+</body>
+</html>

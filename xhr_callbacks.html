@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    .outputs_wrapper > div {
+      padding: 10px;
+    }
+
+    .outputs_wrapper > div:empty {
+      display: none;
+    }
+
+    .outputs_wrapper > div + div {
+      border-top: 1px dotted hsla(0, 0%, 0%, .1);
+    }
+  </style>
+
+
+</head>
+<body>
+<button id="btn">Get</button>
+<hr />
+<div class="outputs_wrapper">
+  <div class="num_output"></div>
+  <div class="list_output"></div>
+  <div class="img_output"></div>
+  <div class="finally_output"></div>
+</div>
+
+<script>
+  /*new Promise((resolve, reject) => {
+
+    setTimeout(() => {
+      resolve("Resolve")
+    },3000)
+
+
+  }).then((res) => {
+    document.querySelector(".out").innerHTML = (res.toString())
+  })
+  .catch(err => console.log(err));*/
+
+  let timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+  console.log("start")
+  let btn_tag = document.getElementById("btn")
+  let num_output_tag = document.querySelector(".num_output")
+  let post_output_tag = document.querySelector(".list_output")
+  let img_output_tag = document.querySelector(".img_output")
+  let finally_output_tag = document.querySelector(".finally_output")
+
+
+  let loading_text = "...loading..."
+  let error_tag = document.createElement("div")
+  error_tag.classList.add("error")
+  error_tag.style.color = "#f00"
+  error_tag.style.fontStyle = "italic"
+
+  let retry_btn = () => {
+    btn_tag.disabled = false
+    btn_tag.innerHTML = "Try get again"
+  }
+
+  let clear_all_tags = () => {
+    num_output_tag.innerHTML = ""
+    post_output_tag.innerHTML = ""
+    img_output_tag.innerHTML = ""
+    finally_output_tag.innerHTML = ""
+    finally_output_tag.style.removeProperty("color")
+  }
+
+  let getRandom = () => {
+    clear_all_tags()
+    //TODO get random
+    let xhr = new XMLHttpRequest()
+    xhr.open("GET", "http://www.randomnumberapi.com/api/v1.0/random")
+    xhr.responseType = 'json';
+    xhr.send()
+    btn_tag.disabled = true
+    num_output_tag.innerHTML = loading_text
+
+    xhr.onprogress = (event) => {
+      if (event.lengthComputable) {
+        console.log(`Random: loaded ${event.loaded} bytes from ${event.total} bytes`)
+      } else {
+        console.log(`Random: loaded ${event.loaded} bytes`)
+      }
+    }
+
+    xhr.onload = function () {
+      if (xhr.status !== 200) {
+        console.log(`Error ${xhr.status}: ${xhr.statusText} `)
+        num_output_tag.innerHTML = ""
+        error_tag.innerHTML = "Error while get random number"
+        num_output_tag.appendChild(error_tag)
+        retry_btn()
+      } else {
+        //console.log(`Success! ${xhr.response}`)
+        //let num = this.response.toString().replace(/[\[,\]]/g, '')
+        let num = xhr.response
+        num_output_tag.innerHTML = num
+
+        //TODO get post
+        let xhr2 = new XMLHttpRequest()
+        xhr2.open("GET", `https://jsonplaceholder.typicode.com/posts/${num}`)
+        xhr2.responseType = 'json';
+        xhr2.send()
+        post_output_tag.innerHTML = loading_text
+
+        xhr2.onprogress = (event) => {
+          if (event.lengthComputable) {
+            console.log(`Post: loaded ${event.loaded} bytes from ${event.total} bytes`)
+          } else {
+            console.log(`Post: loaded ${event.loaded} bytes`)
+          }
+        }
+
+        xhr2.onload = function () {
+          if (xhr2.status !== 200) {
+            console.log(`Error ${xhr2.status}: ${xhr2.statusText} `)
+            post_output_tag.innerHTML = ""
+            error_tag.innerHTML = "Error while get post"
+            post_output_tag.appendChild(error_tag)
+            retry_btn()
+          } else {
+
+            post_output_tag.innerHTML = ""
+            //console.log(`Success! ${xhr2.response}`)
+            
+            let list = xhr2.response
+            let img_text = list.title
+
+            let ul = document.createElement("ul")
+            for (const [key, value] of Object.entries(list)) {
+              let li = document.createElement("li")
+              li.innerHTML = `<b>${key}:</b> ${value}`
+              ul.appendChild(li)
+            }
+            post_output_tag.appendChild(ul)
+
+            //TODO get img
+            let xhr3 = new XMLHttpRequest()
+            let img_url = new URL('https://dummyimage.com/500x500/000/fff')
+            img_url.searchParams.set('text', img_text);
+            xhr3.open("GET", img_url)
+            xhr3.responseType = 'blob';
+            xhr3.send()
+            img_output_tag.innerHTML = loading_text
+
+            xhr3.onprogress = (event) => {
+              if (event.lengthComputable) {
+                console.log(`Img: loaded ${event.loaded} bytes from ${event.total} bytes`)
+              } else {
+                console.log(`Img: loaded ${event.loaded} bytes`)
+              }
+            }
+
+            xhr3.onload = function () {
+              //console.log("load")
+              if (xhr3.status !== 200) {
+                console.log(`Error ${xhr3.status}: ${xhr3.statusText} `)
+                img_output_tag.innerHTML = ""
+                error_tag.innerHTML = "Error while get img"
+                img_output_tag.appendChild(error_tag)
+                retry_btn()
+              } else {
+                img_output_tag.innerHTML = ""
+                let img_blob = xhr3.response
+                //console.log(img_blob)
+                let img_tag = document.createElement("img")
+                let urlCreator = window.URL || window.webkitURL;
+                img_tag.src = urlCreator.createObjectURL(xhr3.response);
+                img_output_tag.appendChild(img_tag)
+
+
+                //TODO get time
+                let xhr4 = new XMLHttpRequest()
+                xhr4.open("GET", `http://worldtimeapi.org/api/timezone/${timezone}`)
+                xhr4.responseText = "json"
+                xhr4.send()
+                finally_output_tag.innerHTML = loading_text
+
+                xhr4.onprogress = (event) => {
+                  if (event.lengthComputable) {
+                    console.log(`Time: loaded ${event.loaded} bytes from ${event.total} bytes`)
+                  } else {
+                    console.log(`Time: loaded ${event.loaded} bytes`)
+                  }
+                }
+                
+                xhr4.onload = () => {
+                  if (xhr4.status !== 200) {
+                    console.log(`Error ${xhr4.status}: ${xhr4.statusText} `)
+                    finally_output_tag.innerHTML = ""
+                    error_tag.innerHTML = "Error while get time"
+                    finally_output_tag.appendChild(error_tag)
+                    retry_btn()
+                  } else {
+                    //console.log(xhr4.response)
+                    let datetime = new Date(JSON.parse(xhr4.response).datetime)
+                    finally_output_tag.style.color = "green"
+                    finally_output_tag.innerHTML = `All Successfully! ${datetime.toLocaleTimeString()}`
+                    btn_tag.disabled = false
+
+                    let smile_tag = document.createElement("span")
+                    smile_tag.style.display = "inline-block"
+                    smile_tag.style.fontSize = "12px"
+                    smile_tag.style.marginLeft = "5px"
+                    smile_tag.innerHTML = "😀"
+
+                    setTimeout(() => {
+                      finally_output_tag.appendChild(smile_tag)
+                      retry_btn()
+                    }, 2000)
+                  }
+                }
+
+                xhr4.onerror = () => {
+                  console.log("time request failed")
+                }
+              }
+            }
+
+            xhr3.onerror = () => {
+              console.log("img request failed")
+            }
+          }
+        }
+
+        xhr2.onerror = () => {
+          console.log("post request failed")
+        }
+      }
+    }
+
+    xhr.onerror = () => {
+      console.log("num request failed")
+    }
+  }
+  console.log("end")
+
+  btn_tag.addEventListener("click", getRandom)
+
+
+
+</script>
+</body>
+</html>
