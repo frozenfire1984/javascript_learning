@@ -25,6 +25,7 @@
   <div class="list_output"></div>
   <div class="img_output"></div>
   <div class="finally_output"></div>
+  <div class="end_output"></div>
 </div>
 
 <script>
@@ -33,11 +34,9 @@
   let post_output_tag = document.querySelector(".list_output")
   let img_output_tag = document.querySelector(".img_output")
   let finally_output_tag = document.querySelector(".finally_output")
-  
-  
+  let end_output_tag = document.querySelector(".end_output")
+
   const tags = document.querySelectorAll(".outputs_wrapper > div")
-
-
 
   let loading_text = "...loading..."
   let error_tag = document.createElement("div")
@@ -50,11 +49,6 @@
       tag.innerHTML = ""
       tag.style.removeProperty("color")
     })
-    //num_output_tag.innerHTML = ""
-    //post_output_tag.innerHTML = ""
-    //img_output_tag.innerHTML = ""
-    //finally_output_tag.innerHTML = ""
-    //finally_output_tag.style.removeProperty("color")
   }
 
   let retry_btn = () => {
@@ -62,22 +56,19 @@
     btn_tag.innerHTML = "Try get again"
   }
 
-
-
   btn_tag.addEventListener("click", () => {
     btn_tag.disabled = true
     clear_all_tags()
     num_output_tag.innerHTML = loading_text
     fetch("http://www.randomnumberapi.com/api/v1.0/random")
     .then((res) => {
-      //console.log(res)
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type") === "application/json") {
         return res.json()
       } else {
         num_output_tag.style.color = "#f00"
-        num_output_tag.innerHTML = "Error!"
+        num_output_tag.innerHTML = "Get random Error!"
         retry_btn()
-        throw new Error(res.statusText)
+        throw new Error("Get random")
       }
     })
     .then((data) => {
@@ -86,12 +77,12 @@
       return fetch(`https://jsonplaceholder.typicode.com/posts/${data[0]}`)
     })
     .then((res) => {
-      console.log(res)
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type") === "application/json; charset=utf-8") {
         return res.json()
       } else {
         post_output_tag.style.color = "#f00"
-        post_output_tag.innerHTML = "Error!"
+        post_output_tag.innerHTML = "Get post Error!"
+        throw new Error("Get post")
       }
     })
     .then((data) => {
@@ -109,12 +100,11 @@
       return fetch(url)
     })
     .then((res) => {
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type") === "image/png") {
         return res.blob()
       } else {
-        console.log("!!!!!!")
         img_output_tag.style.color = "#f00"
-        img_output_tag.innerHTML = "Error!"
+        img_output_tag.innerHTML = "Get Img Error!"
       }
     })
     .then((data) => {
@@ -124,20 +114,31 @@
       img_output_tag.innerHTML = ""
       img_output_tag.appendChild(img_tag)
       finally_output_tag.innerHTML = loading_text
+      //${Intl.DateTimeFormat().resolvedOptions().timeZone}
       return fetch(`http://worldtimeapi.org/api/timezone/${Intl.DateTimeFormat().resolvedOptions().timeZone}`)
     })
     .then((res) => {
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type") === "application/json; charset=utf-8") {
         return res.json()
       } else {
-        console.log("!!!!!!")
         finally_output_tag.style.color = "#f00"
-        finally_output_tag.innerHTML = "Error!"
+        finally_output_tag.innerHTML = "Get time Error!"
       }
     })
     .then((data) => {
-      //console.log(data)
       let datetime = new Date(data.datetime)
+      if (datetime.toString() !== "Invalid Date") {
+        return new Promise(((resolve) => {
+          resolve(datetime)
+        }))
+      } else {
+        console.log("!!!!!!")
+        finally_output_tag.style.color = "#f00"
+        finally_output_tag.innerHTML = "Convert time Error!"
+        throw new Error("Invalid Date")
+      }
+    })
+    .then((datetime) => {
       finally_output_tag.style.color = "green"
       finally_output_tag.innerHTML = `All Successfully! ${datetime.toLocaleTimeString()}`
 
@@ -147,23 +148,25 @@
       smile_tag.style.marginLeft = "5px"
       smile_tag.innerHTML = "😀"
 
-      setTimeout(() => {
-        finally_output_tag.appendChild(smile_tag)
-        retry_btn()
-      }, 1000)
+      return new Promise(((resolve) => {
+        setTimeout(() => {
+          resolve(smile_tag)
+        }, 5000)
+      }))
     })
-
+    .then((tag) => {
+      finally_output_tag.appendChild(tag)
+      retry_btn()
+    })
     .catch((err) => {
       console.log(err)
-      error_tag.innerHTML = "Finally Error!"
+      error_tag.innerHTML = `Finally Error! <br/> ${err}`
       finally_output_tag.appendChild(error_tag)
-
     })
-
+    .finally(() => {
+      end_output_tag.innerHTML = "end!"
+    })
   })
-
-
-
 </script>
 </body>
 </html>
